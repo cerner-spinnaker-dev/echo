@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.echo.microsoftteams;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import groovy.transform.Canonical;
 import lombok.extern.slf4j.Slf4j;
 import retrofit.client.Response;
@@ -33,21 +30,7 @@ public class MicrosoftTeamsService {
   }
 
   public Response sendMessage(String webhookUrl, MicrosoftTeamsMessage message) {
-    log.info("Microsoft Teams Message: " + serializeObject(message));
+    log.debug("Microsoft Teams Message: " + serializeObject(message));
     return microsoftTeamsClient.sendMessage(webhookUrl, message);
-  }
-
-  private String serializeObject(Object obj) {
-    String jsonResult = "";
-
-    try {
-      ObjectMapper mapper = new ObjectMapper();
-      mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-      jsonResult = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
-    } catch (Exception e) {
-      log.error("Error occurred. " + e);
-    }
-
-    return jsonResult;
   }
 }
