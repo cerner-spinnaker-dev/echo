@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.echo.config;
 
-import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsService;
+import static retrofit.Endpoints.newFixedEndpoint;
+
 import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsClient;
+import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,8 +29,6 @@ import retrofit.Endpoint;
 import retrofit.RestAdapter;
 import retrofit.client.Client;
 import retrofit.converter.JacksonConverter;
-
-import static retrofit.Endpoints.newFixedEndpoint;
 
 @Configuration
 @ConditionalOnProperty("microsoftteams.enabled")
@@ -42,11 +42,12 @@ public class MicrosoftTeamsConfig {
 
   @Bean
   public MicrosoftTeamsService microsoftTeamsService(
-    Endpoint teamsEndpoint, Client retrofitClient, RestAdapter.LogLevel retrofitLogLevel) {
+      Endpoint teamsEndpoint, Client retrofitClient, RestAdapter.LogLevel retrofitLogLevel) {
 
     log.info("Microsoft Teams service loaded");
 
-    MicrosoftTeamsClient microsoftTeamsClient = new RestAdapter.Builder()
+    MicrosoftTeamsClient microsoftTeamsClient =
+        new RestAdapter.Builder()
             .setConverter(new JacksonConverter())
             .setClient(retrofitClient)
             .setEndpoint(teamsEndpoint)
