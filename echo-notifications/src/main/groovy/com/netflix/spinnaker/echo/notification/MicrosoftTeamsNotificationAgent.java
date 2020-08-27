@@ -47,7 +47,7 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
       Map preference, String application, Event event, Map config, String status) {
     log.info("Building Microsoft Teams notification");
 
-    Integer buildNumber = -1;
+    String buildNumber = "";
     String configType = Optional.ofNullable(config).map(c -> (String) c.get("type")).orElse(null);
     String configLink = Optional.ofNullable(config).map(c -> (String) c.get("link")).orElse(null);
     Map context = Optional.ofNullable(event.content).map(e -> (Map) e.get("context")).orElse(null);
@@ -57,15 +57,15 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
             "%s %s for %s", WordUtils.capitalize(configType), status, application.toUpperCase());
 
     String eventName = "";
-    Integer executionId =
+    String executionId =
         Optional.ofNullable(event.content)
             .map(e -> (Map) e.get("execution"))
-            .map(e -> (Integer) e.get("id"))
-            .orElse(-1);
+            .map(e -> (String) e.get("id"))
+            .orElse(null);
 
     String executionUrl =
         String.format(
-            "%s/#/applications/%s/%s/%d",
+            "%s/#/applications/%s/%s/%s",
             getSpinnakerUrl(),
             application,
             configType == "stage" ? "executions/details" : configLink,
@@ -106,7 +106,7 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
               .map(e -> (Map) e.get("execution"))
               .map(e -> (Map) e.get("trigger"))
               .map(e -> (Map) e.get("buildInfo"))
-              .map(e -> (Integer) e.get("number"))
+              .map(e -> (String) e.get("number"))
               .orElse(null);
     }
 
@@ -148,7 +148,7 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
     if (customMessage != null) {
       customMessage =
           customMessage
-              .replace("{{executionId}}", executionId != -1 ? executionId.toString() : "")
+              .replace("{{executionId}}", executionId != null ? executionId : "")
               .replace("{{link}}", executionUrl != null ? executionUrl : "");
     }
 
@@ -156,6 +156,7 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
     MicrosoftTeamsSection section = teamsMessage.createSection(configType, cardTitle);
 
     section.setApplicationName(application);
+    section.setBuildNumber(buildNumber);
     section.setCustomMessage(customMessage);
     section.setDescription(executionDescription);
     section.setExecutionName(executionName);
@@ -164,10 +165,6 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
     section.setStatus(status);
     section.setSummary(summary);
     section.setPotentialAction(executionUrl, null);
-
-    if (buildNumber > -1) {
-      section.setBuildNumber(buildNumber.toString());
-    }
 
     teamsMessage.addSection(section);
 
