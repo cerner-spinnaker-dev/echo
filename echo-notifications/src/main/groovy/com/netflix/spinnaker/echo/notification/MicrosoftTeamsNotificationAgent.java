@@ -134,6 +134,9 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
             status == "starting" ? "is" : "has",
             status == "complete" ? "completed successfully" : status);
 
+    // TODO: Output preference data
+    // TODO: Log each of these custom messages and see what it returns (length and text)
+    log.info("Preference data: " + preference.toString());
     String eventCustomMessage =
         Optional.ofNullable(event.content)
             .map(e -> (Map) e.get("context"))
@@ -145,6 +148,9 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
 
     String customMessage =
         preferenceCustomMessage != null ? preferenceCustomMessage : eventCustomMessage;
+    log.info("preferenceCustomMessage: " + preferenceCustomMessage);
+    log.info("eventCustomMessage: " + eventCustomMessage);
+    log.info("customMessage: " + customMessage);
     if (customMessage != null) {
       customMessage =
           customMessage
