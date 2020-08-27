@@ -43,7 +43,6 @@ public class MicrosoftTeamsService {
 
       return jsonResult;
     } catch (Exception e) {
-      log.error("Error occurred. " + e);
       throw e;
     }
   }
