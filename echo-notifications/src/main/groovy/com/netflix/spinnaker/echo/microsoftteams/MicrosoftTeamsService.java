@@ -38,14 +38,16 @@ public class MicrosoftTeamsService {
   }
 
   private String serializeObject(Object obj) {
+    String jsonResult = "";
+
     try {
       ObjectMapper mapper = new ObjectMapper();
       mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-      String jsonResult = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
-
-      return jsonResult;
+      jsonResult = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
     } catch (Exception e) {
       log.error("Error occurred. " + e);
     }
+
+    return jsonResult;
   }
 }
