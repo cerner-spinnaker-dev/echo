@@ -20,9 +20,11 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import groovy.transform.Canonical;
+import lombok.extern.slf4j.Slf4j;
 import retrofit.client.Response;
 
 @Canonical
+@Slf4j
 public class MicrosoftTeamsService {
   MicrosoftTeamsClient microsoftTeamsClient;
 
@@ -43,6 +45,7 @@ public class MicrosoftTeamsService {
 
       return jsonResult;
     } catch (Exception e) {
+      log.error("Error occurred. " + e);
       throw e;
     }
   }
