@@ -47,7 +47,6 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
       Map preference, String application, Event event, Map config, String status) {
     log.info("Building Microsoft Teams notification");
 
-    String buildNumber = "";
     String configType = Optional.ofNullable(config).map(c -> (String) c.get("type")).orElse(null);
     String configLink = Optional.ofNullable(config).map(c -> (String) c.get("link")).orElse(null);
     Map context = Optional.ofNullable(event.content).map(e -> (Map) e.get("context")).orElse(null);
@@ -92,24 +91,6 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
 
     String summary;
 
-    if (configType == "pipeline" || configType == "stage") {
-      executionUrl =
-          Optional.ofNullable(event.content)
-              .map(e -> (Map) e.get("execution"))
-              .map(e -> (Map) e.get("trigger"))
-              .map(e -> (Map) e.get("buildInfo"))
-              .map(e -> (String) e.get("url"))
-              .orElse(null);
-
-      buildNumber =
-          Optional.ofNullable(event.content)
-              .map(e -> (Map) e.get("execution"))
-              .map(e -> (Map) e.get("trigger"))
-              .map(e -> (Map) e.get("buildInfo"))
-              .map(e -> (String) e.get("number"))
-              .orElse(null);
-    }
-
     if (configType == "stage") {
       eventName = Optional.ofNullable(event.content).map(e -> (String) e.get("name")).orElse(null);
 
@@ -138,7 +119,6 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
     MicrosoftTeamsSection section = teamsMessage.createSection(configType, cardTitle);
 
     section.setApplicationName(application);
-    section.setBuildNumber(buildNumber);
     section.setDescription(executionDescription);
     section.setExecutionName(executionName);
     section.setEventName(eventName);
