@@ -112,8 +112,8 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
     summary +=
         String.format(
             "%s %s",
-            status == "starting" ? "is" : "has",
-            status == "complete" ? "completed successfully" : status);
+            status.toLowerCase() == "starting" ? "is" : "has",
+            status.toLowerCase() == "complete" ? "completed successfully" : status);
 
     MicrosoftTeamsMessage teamsMessage = new MicrosoftTeamsMessage(summary, status);
     MicrosoftTeamsSection section = teamsMessage.createSection(configType, cardTitle);
