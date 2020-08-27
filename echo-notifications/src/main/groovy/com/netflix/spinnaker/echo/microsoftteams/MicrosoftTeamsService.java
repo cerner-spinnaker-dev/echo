@@ -27,7 +27,7 @@ public class MicrosoftTeamsService {
     this.microsoftTeamsClient = microsoftTeamsClient;
   }
 
-  Response sendMessage(String webhookUrl, MicrosoftTeamsMessage message) {
+  public Response sendMessage(String webhookUrl, MicrosoftTeamsMessage message) {
     return microsoftTeamsClient.sendMessage(webhookUrl, message);
   }
 }

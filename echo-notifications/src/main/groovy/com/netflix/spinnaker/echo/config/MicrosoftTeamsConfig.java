@@ -14,41 +14,39 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.config
+package com.netflix.spinnaker.echo.config;
 
-import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsService
-import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsClient
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import retrofit.Endpoint
-import retrofit.RestAdapter
-import retrofit.client.Client
-import retrofit.converter.JacksonConverter
+import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsService;
+import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsClient;
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import retrofit.Endpoint;
+import retrofit.RestAdapter;
+import retrofit.client.Client;
+import retrofit.converter.JacksonConverter;
 
-import static retrofit.Endpoints.newFixedEndpoint
+import static retrofit.Endpoints.newFixedEndpoint;
 
 @Configuration
 @ConditionalOnProperty("microsoftteams.enabled")
 @Slf4j
-@CompileStatic
-class MicrosoftTeamsConfig {
+public class MicrosoftTeamsConfig {
 
   @Bean
-  Endpoint teamsEndpoint() {
-    newFixedEndpoint("https://outlook.office.com/webhook")
+  public Endpoint teamsEndpoint() {
+    return newFixedEndpoint("https://outlook.office.com/webhook");
   }
 
   @Bean
-  MicrosoftTeamsService microsoftTeamsService(
+  public MicrosoftTeamsService microsoftTeamsService(
     Endpoint teamsEndpoint, Client retrofitClient, RestAdapter.LogLevel retrofitLogLevel) {
 
     log.info("Microsoft Teams service loaded");
 
-    def microsoftTeamsClient = new RestAdapter.Builder()
+    MicrosoftTeamsClient microsoftTeamsClient = new RestAdapter.Builder()
             .setConverter(new JacksonConverter())
             .setClient(retrofitClient)
             .setEndpoint(teamsEndpoint)
@@ -57,6 +55,6 @@ class MicrosoftTeamsConfig {
             .build()
             .create(MicrosoftTeamsClient.class);
 
-    new MicrosoftTeamsService(microsoftTeamsClient);
+    return new MicrosoftTeamsService(microsoftTeamsClient);
   }
 }
