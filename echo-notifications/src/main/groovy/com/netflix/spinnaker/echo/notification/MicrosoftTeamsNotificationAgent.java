@@ -109,7 +109,6 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
       summary = String.format("%s's %s task ", application, executionId);
     }
 
-    log.info("Status: " + status);
     summary +=
         (status == "starting" ? "is" : "has")
             + " "
