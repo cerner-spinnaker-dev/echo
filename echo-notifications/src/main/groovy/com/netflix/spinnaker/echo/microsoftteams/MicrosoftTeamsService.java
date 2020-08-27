@@ -30,7 +30,6 @@ public class MicrosoftTeamsService {
   }
 
   public Response sendMessage(String webhookUrl, MicrosoftTeamsMessage message) {
-    log.debug("Microsoft Teams Message: " + serializeObject(message));
     return microsoftTeamsClient.sendMessage(webhookUrl, message);
   }
 }
