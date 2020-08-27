@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.echo.notification;
 
-import com.netflix.spinnaker.echo.microsoftteams.api.MicrosoftTeamsSection;
+import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsMessage;
 import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsService;
-import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.microsoftteams.api.MicrosoftTeamsSection;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -35,8 +35,7 @@ import retrofit.mime.TypedByteArray;
 @Service
 public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAgent {
 
-  @Autowired
-  private MicrosoftTeamsService teamsService;
+  @Autowired private MicrosoftTeamsService teamsService;
 
   @Override
   public String getNotificationType() {
@@ -44,128 +43,113 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
   }
 
   @Override
-  public void sendNotifications(Map preference, String application, Event event, Map config, String status) {
+  public void sendNotifications(
+      Map preference, String application, Event event, Map config, String status) {
     log.info("Building Microsoft Teams notification");
 
     Integer buildNumber = -1;
-    String configType = 
-      Optional.ofNullable(config)
-        .map(c -> (String) c.get("type"))
-        .orElse(null);
+    String configType = Optional.ofNullable(config).map(c -> (String) c.get("type")).orElse(null);
+    String configLink = Optional.ofNullable(config).map(c -> (String) c.get("link")).orElse(null);
+    Map context = Optional.ofNullable(event.content).map(e -> (Map) e.get("context")).orElse(null);
 
-    String configLink = 
-      Optional.ofNullable(config)
-      .map(c -> (String) c.get("link"))
-      .orElse(null);
-
-    Map context = 
-      Optional.ofNullable(event.content)
-        .map(e -> (Map) e.get("context"))
-        .orElse(null);
-
-    String cardTitle = 
-      String.format(
-        "%s %s for %s", 
-        WordUtils.capitalize(configType), 
-        status, 
-        application.toUpperCase());
+    String cardTitle =
+        String.format(
+            "%s %s for %s", WordUtils.capitalize(configType), status, application.toUpperCase());
 
     String eventName = "";
-    Integer executionId = 
-      Optional.ofNullable(event.content)
-        .map(e -> (Map) e.get("execution"))
-        .map(e -> (Integer) e.get("id"))
-        .orElse(null);
+    Integer executionId =
+        Optional.ofNullable(event.content)
+            .map(e -> (Map) e.get("execution"))
+            .map(e -> (Integer) e.get("id"))
+            .orElse(-1);
 
-    String executionUrl = 
-      String.format(
-        "%s/#/applications/%s/%s/%s",
-        getSpinnakerUrl(),
-        application,
-        configType == "stage" ? "executions/details" : configLink,
-        executionId);
+    String executionUrl =
+        String.format(
+            "%s/#/applications/%s/%s/%d",
+            getSpinnakerUrl(),
+            application,
+            configType == "stage" ? "executions/details" : configLink,
+            executionId);
 
-    String executionDescription = 
-      Optional.ofNullable(event.content)
-        .map(e -> (Map) e.get("execution"))
-        .map(e -> (String) e.get("description"))
-        .orElse(null);
+    String executionDescription =
+        Optional.ofNullable(event.content)
+            .map(e -> (Map) e.get("execution"))
+            .map(e -> (String) e.get("description"))
+            .orElse(null);
 
     String executionName =
-      Optional.ofNullable(event.content)
-        .map(e -> (Map) e.get("execution"))
-        .map(e -> (String) e.get("name"))
-        .orElse(null);
+        Optional.ofNullable(event.content)
+            .map(e -> (Map) e.get("execution"))
+            .map(e -> (String) e.get("name"))
+            .orElse(null);
 
-    String message = 
-      Optional.ofNullable(preference)
-        .map(p -> (Map) p.get("message"))
-        .map(p -> (Map) p.get("$config.type.$status"))
-        .map(p -> (String) p.get("text"))
-        .orElse(null);
+    String message =
+        Optional.ofNullable(preference)
+            .map(p -> (Map) p.get("message"))
+            .map(p -> (Map) p.get("$config.type.$status"))
+            .map(p -> (String) p.get("text"))
+            .orElse(null);
 
     String summary;
 
     if (configType == "pipeline" || configType == "stage") {
-      executionUrl = 
-        Optional.ofNullable(event.content)
-          .map(e -> (Map) e.get("execution"))
-          .map(e -> (Map) e.get("trigger"))
-          .map(e -> (Map) e.get("buildInfo"))
-          .map(e -> (String) e.get("url"))
-          .orElse(null);
+      executionUrl =
+          Optional.ofNullable(event.content)
+              .map(e -> (Map) e.get("execution"))
+              .map(e -> (Map) e.get("trigger"))
+              .map(e -> (Map) e.get("buildInfo"))
+              .map(e -> (String) e.get("url"))
+              .orElse(null);
 
-      buildNumber = 
-        Optional.ofNullable(event.content)
-          .map(e -> (Map) e.get("execution"))
-          .map(e -> (Map) e.get("trigger"))
-          .map(e -> (Map) e.get("buildInfo"))
-          .map(e -> (Integer) e.get("number"))
-          .orElse(null);
+      buildNumber =
+          Optional.ofNullable(event.content)
+              .map(e -> (Map) e.get("execution"))
+              .map(e -> (Map) e.get("trigger"))
+              .map(e -> (Map) e.get("buildInfo"))
+              .map(e -> (Integer) e.get("number"))
+              .orElse(null);
     }
 
     if (configType == "stage") {
-      eventName = 
-        Optional.ofNullable(event.content)
-        .map(e -> (String) e.get("name"))
-        .orElse(null);
+      eventName = Optional.ofNullable(event.content).map(e -> (String) e.get("name")).orElse(null);
 
-      String stageName = 
-        Optional.ofNullable(context)
-        .map(c -> (Map) c.get("stageDetails"))
-        .map(c -> (String) c.get("name"))
-        .orElse(null);
+      String stageName =
+          Optional.ofNullable(context)
+              .map(c -> (Map) c.get("stageDetails"))
+              .map(c -> (String) c.get("name"))
+              .orElse(null);
 
       eventName = eventName != null ? eventName : stageName;
-      summary = String.format("Stage %s for %s's %s pipeline ", eventName, application, executionName);
+      summary =
+          String.format("Stage %s for %s's %s pipeline ", eventName, application, executionName);
     } else if (configType == "pipeline") {
       summary = String.format("%s's %s pipeline ", application, executionName);
     } else {
       summary = String.format("%s's %s task ", application, executionId);
     }
 
-    summary += 
-      String.format(
-        "%s %s", 
-        status == "starting" ? "is" : "has", 
-        status == "complete" ? "completed successfully" : status);
+    summary +=
+        String.format(
+            "%s %s",
+            status == "starting" ? "is" : "has",
+            status == "complete" ? "completed successfully" : status);
 
-    String eventCustomMessage = 
-      Optional.ofNullable(event.content)
-        .map(e -> (Map) e.get("context"))
-        .map(e -> (String) e.get("customMessage"))
-        .orElse(null);
+    String eventCustomMessage =
+        Optional.ofNullable(event.content)
+            .map(e -> (Map) e.get("context"))
+            .map(e -> (String) e.get("customMessage"))
+            .orElse(null);
 
-    String preferenceCustomMessage = 
-      Optional.ofNullable(preference)
-        .map(p -> (String) p.get("customMessage"))
-        .orElse(null);
+    String preferenceCustomMessage =
+        Optional.ofNullable(preference).map(p -> (String) p.get("customMessage")).orElse(null);
 
-    String customMessage = preferenceCustomMessage != null ? preferenceCustomMessage : eventCustomMessage;
+    String customMessage =
+        preferenceCustomMessage != null ? preferenceCustomMessage : eventCustomMessage;
     if (customMessage != null) {
-      customMessage = customMessage
-        .replace("{{executionId}}", executionId != null ? executionId.toString() : "")
-        .replace("{{link}}", executionUrl != null ? executionUrl : "");
+      customMessage =
+          customMessage
+              .replace("{{executionId}}", executionId != -1 ? executionId.toString() : "")
+              .replace("{{link}}", executionUrl != null ? executionUrl : "");
     }
 
     MicrosoftTeamsMessage teamsMessage = new MicrosoftTeamsMessage(summary, status);
@@ -189,19 +173,17 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
 
     log.info("Sending Microsoft Teams notification");
     String baseUrl = "https://outlook.office.com/webhook/";
-    String completeLink = 
-      Optional.ofNullable(preference)
-        .map(p -> (String) p.get("address"))
-        .orElse(null);
+    String completeLink =
+        Optional.ofNullable(preference).map(p -> (String) p.get("address")).orElse(null);
 
     String partialWebhookURL = completeLink.substring(baseUrl.length());
     Response response = teamsService.sendMessage(partialWebhookURL, teamsMessage);
 
     log.info(
-      "Received response from Microsoft Teams Webhook  : {} {} for execution id {}. {}",
-        response.getStatus(), 
-        response.getReason(), 
-        executionId, 
+        "Received response from Microsoft Teams Webhook  : {} {} for execution id {}. {}",
+        response.getStatus(),
+        response.getReason(),
+        executionId,
         new String(((TypedByteArray) response.getBody()).getBytes()));
   }
 }
