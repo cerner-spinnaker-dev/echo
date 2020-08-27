@@ -86,7 +86,7 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
     String message =
         Optional.ofNullable(preference)
             .map(p -> (Map) p.get("message"))
-            .map(p -> (Map) p.get("$config.type.$status"))
+            .map(p -> (Map) p.get(configType + "." + status))
             .map(p -> (String) p.get("text"))
             .orElse(null);
 
@@ -134,36 +134,11 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
             status == "starting" ? "is" : "has",
             status == "complete" ? "completed successfully" : status);
 
-    // TODO: Output preference data
-    // TODO: Log each of these custom messages and see what it returns (length and text)
-    log.info("Preference data: " + preference.toString());
-    String eventCustomMessage =
-        Optional.ofNullable(event.content)
-            .map(e -> (Map) e.get("context"))
-            .map(e -> (String) e.get("customMessage"))
-            .orElse(null);
-
-    String preferenceCustomMessage =
-        Optional.ofNullable(preference).map(p -> (String) p.get("customMessage")).orElse(null);
-
-    String customMessage =
-        preferenceCustomMessage != null ? preferenceCustomMessage : eventCustomMessage;
-    log.info("preferenceCustomMessage: " + preferenceCustomMessage);
-    log.info("eventCustomMessage: " + eventCustomMessage);
-    log.info("customMessage: " + customMessage);
-    if (customMessage != null) {
-      customMessage =
-          customMessage
-              .replace("{{executionId}}", executionId != null ? executionId : "")
-              .replace("{{link}}", executionUrl != null ? executionUrl : "");
-    }
-
     MicrosoftTeamsMessage teamsMessage = new MicrosoftTeamsMessage(summary, status);
     MicrosoftTeamsSection section = teamsMessage.createSection(configType, cardTitle);
 
     section.setApplicationName(application);
     section.setBuildNumber(buildNumber);
-    section.setCustomMessage(customMessage);
     section.setDescription(executionDescription);
     section.setExecutionName(executionName);
     section.setEventName(eventName);
